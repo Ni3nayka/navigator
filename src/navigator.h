@@ -26,8 +26,8 @@
 
 #pragma once
 
-#define RIGHT_ARM_RULE 1 ////////////////////////////////
-#define LEFT_ARM_RULE  0
+#define QUANTITY_POINT 9
+#define QUANTITY_ROAD 11////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define NAVIGATOR_END          0
 #define NAVIGATOR_MOVE_FORWARD 1
@@ -48,7 +48,11 @@
 
 class Navigator {
     public:
-        Navigator(bool hand);
+        //Navigator(bool hand);
+
+        void set_point();
+        void set_road();
+
         void set_start(int X, int Y, int dir);
         void set_finish(int X, int Y, int dir);
 
@@ -64,15 +68,19 @@ class Navigator {
         int next_move(bool forward_wall, bool side_wall);
 
     private:
+
+        unsigned int _long_road_array[QUANTITY_POINT]={0};
+        char _move_array[QUANTITY_POINT+QUANTITY_ROAD+3]={0};
+
         bool _hand;
         int _real_dir, _end_dir;
         int _real_X, _real_Y;
         int _end_X, _end_Y;
 };
 
-Navigator::Navigator(bool hand) {
+/*Navigator::Navigator(bool hand) {
     _hand = hand;
-}
+}*/
 
 void Navigator::set_start(int X, int Y, int dir) {
     _real_X = X;
@@ -110,10 +118,10 @@ void Navigator::turn_left() {
 }
 
 void Navigator::run_forward() {
-    if      (_real_dir==1) _real_Y++;
-    else if (_real_dir==2) _real_X--;
-    else if (_real_dir==3) _real_Y--;
-    else if (_real_dir==4) _real_X++;
+    if      (_real_dir==NAVIGATOR_DIR_U) _real_Y--;
+    else if (_real_dir==NAVIGATOR_DIR_L) _real_X--;
+    else if (_real_dir==NAVIGATOR_DIR_D) _real_Y++;
+    else if (_real_dir==NAVIGATOR_DIR_R) _real_X++;
 }
 
 bool Navigator::this_is_finish() {
@@ -121,6 +129,7 @@ bool Navigator::this_is_finish() {
 }
 
 int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - empty
+    /*
     // finish
     if (Navigator::this_is_finish())
         return NAVIGATOR_END;
@@ -159,5 +168,5 @@ int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - e
         Navigator::turn_left();
         Navigator::run_forward();
         return NAVIGATOR_MOVE_LEFT_AND_FORWARD;
-    }
+    }*/
 }
