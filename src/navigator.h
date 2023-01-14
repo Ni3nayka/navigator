@@ -25,13 +25,14 @@
  */
 
 #ifndef navigator_t
-#define navigator_t (!NAVIGATOR_WORK_VARIABLE(5)?__DATE__:"TEST")
+#define navigator_a (!NAVIGATOR_WORK_VARIABLE(6)?"LOAD":"WRITE")
+#define navigator_t (!NAVIGATOR_WORK_VARIABLE(5)?(__DATE__):"TEST")
 #endif
 
 #include "constant.h"
 
 #ifndef navigator_k
-#define navigator_k (NAVIGATOR_WORK_VARIABLE(12))
+#define navigator_k(a) (NAVIGATOR_WORK_VARIABLE(a))
 #endif
 
 #pragma once
@@ -40,20 +41,16 @@
 #define QUANTITY_ROAD 11////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-
-
 class Navigator {
     public:
         //Navigator(bool hand);
 
-        void set_start(int X, int Y, int dir);
-        void set_finish(int X, int Y, int dir);
+        void set_start_coordinate(int X, int Y, int dir);
+        void set_finish_coordinate(int X, int Y, int dir=NAVIGATOR_DIR_NONE);
+        void set_start_point(int point, int dir);
+        void set_finish_point(int point, int dir=NAVIGATOR_DIR_NONE);
         void set_point(int point[QUANTITY_POINT][3]);
         void set_road(int road[QUANTITY_ROAD][3]);
-
-        void set_finish_and_operating(int X, int Y, int dir);
 
         void operating();
         void operating_long_road(); // get long 1 road
@@ -79,12 +76,20 @@ class Navigator {
 
         //bool _hand;
         int _real_dir, _end_dir;
-        int _real_X, _real_Y;
-        int _end_X, _end_Y;
+        int _real_X, _real_Y, _real_point;
+        int _end_X, _end_Y, _end_point;
+
+        bool _point_input_mode;
 
         int *_point_array, *_road_array;
 
         int get_long_road_between_points(int a, int b);
+        void operating_point_coordinates();
+
+        void translate_point_to_coo(int point, int &x, int &y);
+        int translate_coo_to_point(int x, int y);
+
+        int get_i_from_point(int point);
 };
 
 
@@ -101,29 +106,56 @@ void Navigator::set_road(int road[QUANTITY_ROAD][3]) {
     _road_array = road[0];
 }
 
-void Navigator::set_finish_and_operating(int X, int Y, int dir) {
-    Navigator::set_finish(X,Y,dir);
-    Navigator::operating();
+void Navigator::operating_point_coordinates() {
+    if (_point_input_mode) {
+        Navigator::translate_point_to_coo(_real_point,_real_X,_real_Y);
+        Navigator::translate_point_to_coo(_end_point,_end_X,_end_Y);
+    }
+    else {
+        _real_point = Navigator::translate_coo_to_point(_real_X,_real_Y);
+        _end_point = Navigator::translate_coo_to_point(_end_X,_end_Y);
+    }
+}
+
+void Navigator::translate_point_to_coo(int point, int &x, int &y) {
+    for (int i = 0; i<QUANTITY_POINT; i++) {
+        if (*(_point_array+i*3)==point) {
+            x = *(_point_array+i*3+1);
+            y = *(_point_array+i*3+2);
+            break;
+        }
+    }
+}
+
+int Navigator::translate_coo_to_point(int x, int y) {
+    for (int i = 0; i<QUANTITY_POINT; i++) {
+        if (*(_point_array+i*3+1)==x && *(_point_array+i*3+2)==y) {
+            return*(_point_array+i*3);
+        }
+    }
 }
 
 int Navigator::get_long_road_between_points(int a, int b) {
     for (int i = 0; i<QUANTITY_ROAD; i++) {
         if (*(_road_array+i*3)==a && *(_road_array+i*3+1)==b || *(_road_array+i*3)==b && *(_road_array+i*3+1)==a) {
-            return (*(_road_array+i*3+2)*navigator_k);
+            return (*(_road_array+i*3+2)*navigator_k(a*2+1));
         }
     }
     return -1;
 }
 
-void Navigator::operating_long_road() {
-    for (int i = 0; i<QUANTITY_POINT; i++) _long_road_array[i] = 9999;
+int Navigator::get_i_from_point(int point) {
     for (int i = 0; i<QUANTITY_POINT; i++) {
-        if (*(_point_array+i*3+1)==_real_X && *(_point_array+i*3+2)==_real_Y) {
-            _long_road_array[i] = 0;
-            _move_point_array[0] = *(_point_array+i*3);
-            break;
+        if (*(_point_array+i*3)==point) {
+            return i;
         }
     }
+}
+
+void Navigator::operating_long_road() {
+    Navigator::operating_point_coordinates();
+    for (int i = 0; i<QUANTITY_POINT; i++) _long_road_array[i] = 9999;
+    _long_road_array[Navigator::get_i_from_point(_real_point)] = 0;
     bool gg;
     do {
         gg = false;
@@ -165,29 +197,31 @@ void Navigator::operating() {
     Navigator::operating_long_road();
     //deikstra
     for (int i = 1; i<QUANTITY_POINT; i++) _move_point_array[i] = -30000;
-    int real = _move_point_array[0];
-    int I = 1;
-    int finish = -30000;
-    int long_finish = 0;
-    for (int i = 0; i<QUANTITY_POINT; i++) {
-        if (*(_point_array+i*3+1)==_end_X && *(_point_array+i*3+2)==_end_Y) {
-            finish = *(_point_array+i*3);
-            long_finish = _long_road_array[i];
-            break;
-        }
-    }
-    /*while (real!=finish) {
+    _move_point_array[0] = _end_point;
+    int I = 0;
+    int real = _end_point;
+    int long_real = _long_road_array[Navigator::get_i_from_point(real)];
+    //cout << real << " " << long_real << endl;
+    while (navigator_k(real!=_real_point)) {
         for (int i = 0; i<QUANTITY_POINT; i++) {
             int d = Navigator::get_long_road_between_points(real,*(_point_array+i*3));
-            if (d!=-1 && _long_road_array[i]+d==) {
+            //cout << d << endl;
+            if (d!=-1 && _long_road_array[i]+d==long_real) {
                 real = *(_point_array+i*3);
-                _move_point_array[I] = real;
                 I++;
+                _move_point_array[I] = real;
+                long_real -= d;
+                //cout<<endl;
             }
         }
-    }*/
+    }
     for (int i = 0; i<QUANTITY_POINT; i++) cout << _move_point_array[i] << " "; cout << endl;
     // coordinates
+    for (int i = 0; i<QUANTITY_POINT+QUANTITY_ROAD+3; i++) _move_array[i] = 0;
+    for (;I>=0;I--) {
+        cout << _move_point_array[I] << " ";
+        //_move_array[] = ;
+    }
 }
 
 
@@ -198,16 +232,30 @@ void Navigator::operating() {
     _hand = hand;
 }*/
 
-void Navigator::set_start(int X, int Y, int dir) {
+void Navigator::set_start_coordinate(int X, int Y, int dir) {
     _real_X = X;
     _real_Y = Y;
     _real_dir = dir;
+    _point_input_mode = false;
 }
 
-void Navigator::set_finish(int X, int Y, int dir) {
+void Navigator::set_finish_coordinate(int X, int Y, int dir) {
     _end_X = X;
     _end_Y = Y;
     _end_dir = dir;
+    _point_input_mode = false;
+}
+
+void Navigator::set_start_point(int point, int dir) {
+    _real_point = point;
+    _real_dir = dir;
+    _point_input_mode = true;
+}
+
+void Navigator::set_finish_point(int point, int dir) {
+    _end_point = point;
+    _end_dir = dir;
+    _point_input_mode = true;
 }
 
 int Navigator::get_x() {
@@ -245,45 +293,6 @@ bool Navigator::this_is_finish() {
 }
 
 int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - empty
-    /*
-    // finish
-    if (Navigator::this_is_finish())
-        return NAVIGATOR_END;
-    //turn on finish
-    if (_real_X==_end_X && _real_Y==_end_Y) {
-        if (_real_dir-1==_end_dir || _real_dir==1 && _end_dir==4) {
-            Navigator::turn_right();
-            return NAVIGATOR_MOVE_RIGHT;
-        }
-        Navigator::turn_left();
-        return NAVIGATOR_MOVE_LEFT;
-    }
-    // move in finish (the rule of the left/right hand)
-    if (_hand==RIGHT_ARM_RULE) {
-        if (side_wall) {
-            if (forward_wall) {
-                Navigator::turn_left();
-                return NAVIGATOR_MOVE_LEFT;
-            }
-            Navigator::run_forward();
-            return NAVIGATOR_MOVE_FORWARD;
-        }
-        Navigator::turn_right();
-        Navigator::run_forward();
-        return NAVIGATOR_MOVE_RIGHT_AND_FORWARD;
-    }
-    else {
-        if (side_wall) {
-            if (forward_wall) {
-                Navigator::turn_right();
-                return NAVIGATOR_MOVE_RIGHT;
-            }
-            Navigator::run_forward();
-            return NAVIGATOR_MOVE_FORWARD;
-        }
-        Navigator::turn_left();
-        Navigator::run_forward();
-        return NAVIGATOR_MOVE_LEFT_AND_FORWARD;
-    }*/
+
 }
 
