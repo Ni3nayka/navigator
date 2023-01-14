@@ -50,11 +50,17 @@ class Navigator {
     public:
         //Navigator(bool hand);
 
-        void set_point();
-        void set_road();
-
         void set_start(int X, int Y, int dir);
         void set_finish(int X, int Y, int dir);
+        void set_point(int point[QUANTITY_POINT][3]);
+        void set_road(int road[QUANTITY_ROAD][3]);
+
+        void set_finish_and_operating(int X, int Y, int dir);
+
+        void operating();
+        void operating_long_road(); // get long 1 road
+
+        int get_long_road_to_point(int point);
 
         int get_x();
         int get_y();
@@ -69,14 +75,124 @@ class Navigator {
 
     private:
 
-        unsigned int _long_road_array[QUANTITY_POINT]={0};
         char _move_array[QUANTITY_POINT+QUANTITY_ROAD+3]={0};
+        int _move_point_array[QUANTITY_POINT]={0};
+        int _long_road_array[QUANTITY_POINT]={0};
 
-        bool _hand;
+        //bool _hand;
         int _real_dir, _end_dir;
         int _real_X, _real_Y;
         int _end_X, _end_Y;
+
+        int *_point_array, *_road_array;
+
+        int get_long_road_between_points(int a, int b);
 };
+
+
+
+/*void Navigator::set_point(int **point) {
+    _point_array = point;
+}*/
+
+void Navigator::set_point(int point[QUANTITY_POINT][3]) {
+    _point_array = point[0];
+}
+
+void Navigator::set_road(int road[QUANTITY_ROAD][3]) {
+    _road_array = road[0];
+}
+
+void Navigator::set_finish_and_operating(int X, int Y, int dir) {
+    Navigator::set_finish(X,Y,dir);
+    Navigator::operating();
+}
+
+int Navigator::get_long_road_between_points(int a, int b) {
+    for (int i = 0; i<QUANTITY_ROAD; i++) {
+        if (*(_road_array+i*3)==a && *(_road_array+i*3+1)==b || *(_road_array+i*3)==b && *(_road_array+i*3+1)==a) {
+            return *(_road_array+i*3+2);
+        }
+    }
+    return -1;
+}
+
+void Navigator::operating_long_road() {
+    for (int i = 0; i<QUANTITY_POINT; i++) _long_road_array[i] = 9999;
+    for (int i = 0; i<QUANTITY_POINT; i++) {
+        if (*(_point_array+i*3+1)==_real_X && *(_point_array+i*3+2)==_real_Y) {
+            _long_road_array[i] = 0;
+            _move_point_array[0] = *(_point_array+i*3);
+            break;
+        }
+    }
+    bool gg;
+    do {
+        gg = false;
+        for (int a = 0; a<QUANTITY_POINT; a++) {
+            for (int b = 0; b<QUANTITY_POINT; b++) {
+                if (a!=b) {
+                    int d = Navigator::get_long_road_between_points(*(_point_array+a*3),*(_point_array+b*3));
+                    if (d!=-1) {
+                        //cout << a << " " << b << " " << d << endl;
+                        if (_long_road_array[a]+d < _long_road_array[b]) {
+                            _long_road_array[b] = _long_road_array[a]+d;
+                            gg = true;
+                        }
+                        if (_long_road_array[b]+d < _long_road_array[a]) {
+                            _long_road_array[a] = _long_road_array[b]+d;
+                            gg = true;
+                        }
+                    }
+                }
+            }
+        }
+
+    } while (gg);
+    for (int i = 0; i<QUANTITY_POINT; i++) cout << _long_road_array[i] << " "; cout << endl;
+}
+
+int Navigator::get_long_road_to_point(int point) {
+    for (int i = 0; i<QUANTITY_POINT; i++) {
+        if (*(_point_array+i*3)==point) {
+            return _long_road_array[i];
+        }
+    }
+    return -1;
+}
+
+void Navigator::operating() {
+    Navigator::operating_long_road();
+    //deikstra
+    for (int i = 1; i<QUANTITY_POINT; i++) _move_point_array[i] = -30000;
+    int real = _move_point_array[0];
+    int I = 1;
+    int finish = -30000;
+    int long_finish = 0;
+    for (int i = 0; i<QUANTITY_POINT; i++) {
+        if (*(_point_array+i*3+1)==_end_X && *(_point_array+i*3+2)==_end_Y) {
+            finish = *(_point_array+i*3);
+            long_finish = _long_road_array[i];
+            break;
+        }
+    }
+    while real!=finish {
+        for (int i = 0; i<QUANTITY_POINT; i++) {
+            int d = Navigator::get_long_road_between_points(real,*(_point_array+i*3));
+            if (d!=-1 && _long_road_array[i]+d==) {
+                real = *(_point_array+i*3);
+                _move_point_array[I] = real;
+                I++;
+            }
+        }
+    }
+    for (int i = 0; i<QUANTITY_POINT; i++) cout << _move_point_array[i] << " "; cout << endl;
+    // coordinates
+}
+
+
+//==================================================================================================================================================================================
+
 
 /*Navigator::Navigator(bool hand) {
     _hand = hand;
@@ -170,3 +286,4 @@ int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - e
         return NAVIGATOR_MOVE_LEFT_AND_FORWARD;
     }*/
 }
+
