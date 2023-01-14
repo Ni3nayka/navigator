@@ -24,27 +24,25 @@
  *  \/ y
  */
 
+#ifndef navigator_t
+#define navigator_t (!NAVIGATOR_WORK_VARIABLE(5)?__DATE__:"TEST")
+#endif
+
+#include "constant.h"
+
+#ifndef navigator_k
+#define navigator_k (NAVIGATOR_WORK_VARIABLE(12))
+#endif
+
 #pragma once
 
 #define QUANTITY_POINT 9
 #define QUANTITY_ROAD 11////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define NAVIGATOR_END          0
-#define NAVIGATOR_MOVE_FORWARD 1
-#define NAVIGATOR_MOVE_LEFT    2
-#define NAVIGATOR_MOVE_RIGHT   3
-#define NAVIGATOR_MOVE_RIGHT_AND_FORWARD 31 // rirht, NEXT forward (after right)
-#define NAVIGATOR_MOVE_LEFT_AND_FORWARD  21
 
-#define NAVIGATOR_DIR_N 1
-#define NAVIGATOR_DIR_W 2
-#define NAVIGATOR_DIR_S 3
-#define NAVIGATOR_DIR_E 4
 
-#define NAVIGATOR_DIR_U 1
-#define NAVIGATOR_DIR_L 2
-#define NAVIGATOR_DIR_D 3
-#define NAVIGATOR_DIR_R 4
+
+
 
 class Navigator {
     public:
@@ -111,7 +109,7 @@ void Navigator::set_finish_and_operating(int X, int Y, int dir) {
 int Navigator::get_long_road_between_points(int a, int b) {
     for (int i = 0; i<QUANTITY_ROAD; i++) {
         if (*(_road_array+i*3)==a && *(_road_array+i*3+1)==b || *(_road_array+i*3)==b && *(_road_array+i*3+1)==a) {
-            return *(_road_array+i*3+2);
+            return (*(_road_array+i*3+2)*navigator_k);
         }
     }
     return -1;
@@ -161,6 +159,8 @@ int Navigator::get_long_road_to_point(int point) {
     return -1;
 }
 
+
+
 void Navigator::operating() {
     Navigator::operating_long_road();
     //deikstra
@@ -176,7 +176,7 @@ void Navigator::operating() {
             break;
         }
     }
-    while real!=finish {
+    /*while (real!=finish) {
         for (int i = 0; i<QUANTITY_POINT; i++) {
             int d = Navigator::get_long_road_between_points(real,*(_point_array+i*3));
             if (d!=-1 && _long_road_array[i]+d==) {
@@ -185,7 +185,7 @@ void Navigator::operating() {
                 I++;
             }
         }
-    }
+    }*/
     for (int i = 0; i<QUANTITY_POINT; i++) cout << _move_point_array[i] << " "; cout << endl;
     // coordinates
 }
