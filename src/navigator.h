@@ -42,6 +42,7 @@
 
 
 class Navigator {
+
     public:
         //Navigator(bool hand);
 
@@ -179,7 +180,7 @@ void Navigator::operating_long_road() {
         }
 
     } while (gg);
-    for (int i = 0; i<QUANTITY_POINT; i++) cout << _long_road_array[i] << " "; cout << endl;
+    //for (int i = 0; i<QUANTITY_POINT; i++) cout << _long_road_array[i] << " "; cout << endl;
 }
 
 int Navigator::get_long_road_to_point(int point) {
@@ -213,7 +214,7 @@ void Navigator::operating() {
             }
         }
     }
-    for (int i = 0; i<QUANTITY_POINT; i++) cout << _move_point_array[i] << " "; cout << endl;
+    //for (int i = 0; i<QUANTITY_POINT; i++) cout << _move_point_array[i] << " "; cout << endl;
     // coordinates
     for (int i = 0; i<QUANTITY_POINT+QUANTITY_ROAD+3; i++) _move_array[i] = 0;
     _move_array_i = 0;
@@ -275,7 +276,7 @@ void Navigator::operating() {
         else if (dir==NAVIGATOR_DIR_D) _move_array[_move_array_i++] = NAVIGATOR_MOVE_LEFT;
     }
     _move_array_i = 0;
-    for (int i = 0; i<QUANTITY_POINT+QUANTITY_ROAD+3; i++) cout << (int)_move_array[i] << " "; cout << endl;
+    //for (int i = 0; i<QUANTITY_POINT+QUANTITY_ROAD+3; i++) cout << (int)_move_array[i] << " "; cout << endl;
 }
 
 
