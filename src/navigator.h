@@ -63,14 +63,16 @@ class Navigator {
 
         void turn_right();
         void turn_left();
+        void turn_around();
         void run_forward();
 
         bool this_is_finish();
-        int next_move(bool forward_wall, bool side_wall);
+        int next_move();
 
     private:
 
         char _move_array[QUANTITY_POINT+QUANTITY_ROAD+3]={0};
+        int _move_array_i;
         int _move_point_array[QUANTITY_POINT]={0};
         int _long_road_array[QUANTITY_POINT]={0};
 
@@ -91,8 +93,6 @@ class Navigator {
 
         int get_i_from_point(int point);
 };
-
-
 
 /*void Navigator::set_point(int **point) {
     _point_array = point;
@@ -191,8 +191,6 @@ int Navigator::get_long_road_to_point(int point) {
     return -1;
 }
 
-
-
 void Navigator::operating() {
     Navigator::operating_long_road();
     //deikstra
@@ -218,10 +216,66 @@ void Navigator::operating() {
     for (int i = 0; i<QUANTITY_POINT; i++) cout << _move_point_array[i] << " "; cout << endl;
     // coordinates
     for (int i = 0; i<QUANTITY_POINT+QUANTITY_ROAD+3; i++) _move_array[i] = 0;
-    for (;I>=0;I--) {
-        cout << _move_point_array[I] << " ";
-        //_move_array[] = ;
+    _move_array_i = 0;
+    int x0 = _real_X, y0 = _real_Y, dir = _real_dir;
+    for (;I>0;I--) {
+        //cout << _move_point_array[I] << " " << _move_point_array[I-1] << " " << x0 << " " << y0 << " " <<dir << endl;
+        int x1,y1;
+        //Navigator::translate_point_to_coo(_move_point_array[I], x0, y0);
+        Navigator::translate_point_to_coo(_move_point_array[I-1], x1, y1);
+        if (x0==x1) {
+            if (y1<y0) { // up
+                if      (dir==NAVIGATOR_DIR_L) _move_array[_move_array_i++] = NAVIGATOR_MOVE_RIGHT;
+                else if (dir==NAVIGATOR_DIR_R) _move_array[_move_array_i++] = NAVIGATOR_MOVE_LEFT;
+                else if (dir==NAVIGATOR_DIR_D) _move_array[_move_array_i++] = NAVIGATOR_MOVE_AROUND;
+                dir = NAVIGATOR_DIR_U;
+            }
+            else { // down
+                if      (dir==NAVIGATOR_DIR_L) _move_array[_move_array_i++] = NAVIGATOR_MOVE_LEFT;
+                else if (dir==NAVIGATOR_DIR_R) _move_array[_move_array_i++] = NAVIGATOR_MOVE_RIGHT;
+                else if (dir==NAVIGATOR_DIR_U) _move_array[_move_array_i++] = NAVIGATOR_MOVE_AROUND;
+                dir = NAVIGATOR_DIR_D;
+            }
+        }
+        else if (x0>x1) { // left
+            if      (dir==NAVIGATOR_DIR_U) _move_array[_move_array_i++] = NAVIGATOR_MOVE_LEFT;
+            else if (dir==NAVIGATOR_DIR_R) _move_array[_move_array_i++] = NAVIGATOR_MOVE_AROUND;
+            else if (dir==NAVIGATOR_DIR_D) _move_array[_move_array_i++] = NAVIGATOR_MOVE_RIGHT;
+            dir = NAVIGATOR_DIR_L;
+        }
+        else { // right
+            if      (dir==NAVIGATOR_DIR_U) _move_array[_move_array_i++] = NAVIGATOR_MOVE_RIGHT;
+            else if (dir==NAVIGATOR_DIR_L) _move_array[_move_array_i++] = NAVIGATOR_MOVE_AROUND;
+            else if (dir==NAVIGATOR_DIR_D) _move_array[_move_array_i++] = NAVIGATOR_MOVE_LEFT;
+            dir = NAVIGATOR_DIR_R;
+        }
+        //if _move_array[_move_array_i++] = NAVIGATOR_MOVE_LEFT;
+        _move_array[_move_array_i++] = NAVIGATOR_MOVE_FORWARD;
+        x0 = x1;
+        y0 = y1;
     }
+    if (_end_dir==NAVIGATOR_DIR_U) {
+        if      (dir==NAVIGATOR_DIR_L) _move_array[_move_array_i++] = NAVIGATOR_MOVE_RIGHT;
+        else if (dir==NAVIGATOR_DIR_R) _move_array[_move_array_i++] = NAVIGATOR_MOVE_LEFT;
+        else if (dir==NAVIGATOR_DIR_D) _move_array[_move_array_i++] = NAVIGATOR_MOVE_AROUND;
+    }
+    else if (_end_dir==NAVIGATOR_DIR_D) {
+        if      (dir==NAVIGATOR_DIR_L) _move_array[_move_array_i++] = NAVIGATOR_MOVE_LEFT;
+        else if (dir==NAVIGATOR_DIR_R) _move_array[_move_array_i++] = NAVIGATOR_MOVE_RIGHT;
+        else if (dir==NAVIGATOR_DIR_U) _move_array[_move_array_i++] = NAVIGATOR_MOVE_AROUND;
+    }
+    else if (_end_dir==NAVIGATOR_DIR_L) {
+        if      (dir==NAVIGATOR_DIR_U) _move_array[_move_array_i++] = NAVIGATOR_MOVE_LEFT;
+        else if (dir==NAVIGATOR_DIR_R) _move_array[_move_array_i++] = NAVIGATOR_MOVE_AROUND;
+        else if (dir==NAVIGATOR_DIR_D) _move_array[_move_array_i++] = NAVIGATOR_MOVE_RIGHT;
+    }
+    else if (_end_dir==NAVIGATOR_DIR_R) {
+        if      (dir==NAVIGATOR_DIR_U) _move_array[_move_array_i++] = NAVIGATOR_MOVE_RIGHT;
+        else if (dir==NAVIGATOR_DIR_L) _move_array[_move_array_i++] = NAVIGATOR_MOVE_AROUND;
+        else if (dir==NAVIGATOR_DIR_D) _move_array[_move_array_i++] = NAVIGATOR_MOVE_LEFT;
+    }
+    _move_array_i = 0;
+    for (int i = 0; i<QUANTITY_POINT+QUANTITY_ROAD+3; i++) cout << (int)_move_array[i] << " "; cout << endl;
 }
 
 
@@ -281,6 +335,11 @@ void Navigator::turn_left() {
         _real_dir -= 4;
 }
 
+void Navigator::turn_around() {
+    Navigator::turn_left();
+    Navigator::turn_left();
+}
+
 void Navigator::run_forward() {
     if      (_real_dir==NAVIGATOR_DIR_U) _real_Y--;
     else if (_real_dir==NAVIGATOR_DIR_L) _real_X--;
@@ -289,10 +348,15 @@ void Navigator::run_forward() {
 }
 
 bool Navigator::this_is_finish() {
-    return _real_dir==_end_dir && _real_X==_end_X && _real_Y==_end_Y;
+    return (_real_dir==_end_dir || _end_dir==0) && _real_X==_end_X && _real_Y==_end_Y;
 }
 
-int Navigator::next_move(bool forward_wall, bool side_wall) { // 1 - wall, 0 - empty
-
+int Navigator::next_move() {
+    if (_move_array[_move_array_i]==NAVIGATOR_END) return 0;
+    if (_move_array[_move_array_i]==NAVIGATOR_MOVE_FORWARD) Navigator::run_forward();
+    if (_move_array[_move_array_i]==NAVIGATOR_MOVE_LEFT) Navigator::turn_left();
+    if (_move_array[_move_array_i]==NAVIGATOR_MOVE_RIGHT) Navigator::turn_right();
+    if (_move_array[_move_array_i]==NAVIGATOR_MOVE_AROUND) Navigator::turn_around();
+    return _move_array[_move_array_i++];
 }
 
