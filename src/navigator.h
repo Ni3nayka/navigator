@@ -37,8 +37,8 @@
 
 #pragma once
 
-#define QUANTITY_POINT 9
-#define QUANTITY_ROAD 11////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define QUANTITY_POINT 24
+#define QUANTITY_ROAD 27////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 class Navigator {
@@ -82,12 +82,12 @@ class Navigator {
         int _real_X, _real_Y, _real_point;
         int _end_X, _end_Y, _end_point;
 
-        bool _point_input_mode;
+        //bool _point_input_mode;
 
         int *_point_array, *_road_array;
 
         int get_long_road_between_points(int a, int b);
-        void operating_point_coordinates();
+        //void operating_point_coordinates();
 
         void translate_point_to_coo(int point, int &x, int &y);
         int translate_coo_to_point(int x, int y);
@@ -107,7 +107,7 @@ void Navigator::set_road(int road[QUANTITY_ROAD][3]) {
     _road_array = road[0];
 }
 
-void Navigator::operating_point_coordinates() {
+/*void Navigator::operating_point_coordinates() {
     if (_point_input_mode) {
         Navigator::translate_point_to_coo(_real_point,_real_X,_real_Y);
         Navigator::translate_point_to_coo(_end_point,_end_X,_end_Y);
@@ -116,7 +116,7 @@ void Navigator::operating_point_coordinates() {
         _real_point = Navigator::translate_coo_to_point(_real_X,_real_Y);
         _end_point = Navigator::translate_coo_to_point(_end_X,_end_Y);
     }
-}
+}*/
 
 void Navigator::translate_point_to_coo(int point, int &x, int &y) {
     for (int i = 0; i<QUANTITY_POINT; i++) {
@@ -151,12 +151,15 @@ int Navigator::get_i_from_point(int point) {
             return i;
         }
     }
+    return -1;
 }
 
 void Navigator::operating_long_road() {
-    Navigator::operating_point_coordinates();
+    //Navigator::operating_point_coordinates();
     for (int i = 0; i<QUANTITY_POINT; i++) _long_road_array[i] = 9999;
-    _long_road_array[Navigator::get_i_from_point(_real_point)] = 0;
+    int t = Navigator::get_i_from_point(_real_point);
+    if (t==-1) return;
+    _long_road_array[t] = 0;
     bool gg;
     do {
         gg = false;
@@ -291,26 +294,30 @@ void Navigator::set_start_coordinate(int X, int Y, int dir) {
     _real_X = X;
     _real_Y = Y;
     _real_dir = dir;
-    _point_input_mode = false;
+    //_point_input_mode = false;
+    _real_point = Navigator::translate_coo_to_point(_real_X,_real_Y);
 }
 
 void Navigator::set_finish_coordinate(int X, int Y, int dir) {
     _end_X = X;
     _end_Y = Y;
     _end_dir = dir;
-    _point_input_mode = false;
+    //_point_input_mode = false;
+    _end_point = Navigator::translate_coo_to_point(_end_X,_end_Y);
 }
 
 void Navigator::set_start_point(int point, int dir) {
     _real_point = point;
     _real_dir = dir;
-    _point_input_mode = true;
+    //_point_input_mode = true;
+    Navigator::translate_point_to_coo(_real_point,_real_X,_real_Y);
 }
 
 void Navigator::set_finish_point(int point, int dir) {
     _end_point = point;
     _end_dir = dir;
-    _point_input_mode = true;
+    //_point_input_mode = true;
+    Navigator::translate_point_to_coo(_end_point,_end_X,_end_Y);
 }
 
 int Navigator::get_x() {
@@ -346,6 +353,8 @@ void Navigator::run_forward() {
     else if (_real_dir==NAVIGATOR_DIR_L) _real_X--;
     else if (_real_dir==NAVIGATOR_DIR_D) _real_Y++;
     else if (_real_dir==NAVIGATOR_DIR_R) _real_X++;
+    //_point_input_mode = false;
+    _real_point = Navigator::translate_coo_to_point(_real_X,_real_Y);
 }
 
 bool Navigator::this_is_finish() {
