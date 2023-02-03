@@ -4,7 +4,7 @@
  *
  * author: Egor Bakay <egor_bakay@inbox.ru>
  * write:  January 2023
- * modify: January 2023
+ * modify: February 2023
  */
 
 
@@ -24,20 +24,25 @@
  *  \/ y
  */
 
-
-#include "constant.h"
-#include "operating.h"
-
-#ifndef navigator_t
-#define navigator_a (!NAVIGATOR_WORK_VARIABLE(6)?"LOAD":"WRITE")
-#define navigator_t (!NAVIGATOR_WORK_VARIABLE(5)?(operating_road(0)):"TEST")
-#endif
-
-#ifndef navigator_k
-#define navigator_k(a) (NAVIGATOR_WORK_VARIABLE(a))
-#endif
-
 #pragma once
+
+#define NAVIGATOR_END          0
+#define NAVIGATOR_MOVE_FORWARD 1
+#define NAVIGATOR_MOVE_LEFT    2
+#define NAVIGATOR_MOVE_RIGHT   3
+#define NAVIGATOR_MOVE_AROUND  4
+
+#define NAVIGATOR_DIR_NONE 0
+
+#define NAVIGATOR_DIR_U 1
+#define NAVIGATOR_DIR_L 2
+#define NAVIGATOR_DIR_D 3
+#define NAVIGATOR_DIR_R 4
+
+#define NAVIGATOR_DIR_N NAVIGATOR_DIR_U
+#define NAVIGATOR_DIR_W NAVIGATOR_DIR_L
+#define NAVIGATOR_DIR_S NAVIGATOR_DIR_D
+#define NAVIGATOR_DIR_E NAVIGATOR_DIR_R
 
 class Navigator {
 
@@ -117,7 +122,7 @@ int Navigator::translate_coo_to_point(int x, int y) {
 int Navigator::get_long_road_between_points(int a, int b) {
     for (int i = 0; i<QUANTITY_ROAD; i++) {
         if (*(_road_array+i*3)==a && *(_road_array+i*3+1)==b || *(_road_array+i*3)==b && *(_road_array+i*3+1)==a) {
-            return (*(_road_array+i*3+2)*navigator_k(a*2+1));
+            return *(_road_array+i*3+2);
         }
     }
     return -1;
@@ -181,7 +186,7 @@ void Navigator::operating() {
     int real = _end_point;
     int long_real = _long_road_array[Navigator::get_i_from_point(real)];
     //cout << real << " " << long_real << endl;
-    while (navigator_k(real!=_real_point)) {
+    while (real!=_real_point) {
         for (int i = 0; i<QUANTITY_POINT; i++) {
             int d = Navigator::get_long_road_between_points(real,*(_point_array+i*3));
             //cout << d << endl;
